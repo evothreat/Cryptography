@@ -185,8 +185,8 @@ def main():
     key = add_parities(random_bits(56))
 
     plaintext = "Hello, my name is DES!"
-    ciphertext = des_encrypt(pkcs7_bits_pad(ascii_to_bits(plaintext), 64), key)
-    decrypted = bits_to_ascii(pkcs7_bits_unpad(des_decrypt(ciphertext, key)))
+    ciphertext = des_encrypt(pkcs7_pad_bits(ascii_to_bits(plaintext), 64), key)
+    decrypted = bits_to_ascii(pkcs7_unpad_bits(des_decrypt(ciphertext, key)))
 
     print("Plaintext:", plaintext)
     print("Ciphertext:", ''.join(str(b) for b in ciphertext))

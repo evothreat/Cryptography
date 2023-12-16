@@ -33,7 +33,7 @@ def random_bits(n):
     return [secrets.choice((0, 1)) for _ in range(n)]
 
 
-def pkcs7_bits_pad(bits, block_size):
+def pkcs7_pad_bits(bits, block_size):
     # Calculate the number of bits to pad
     padding_size = block_size - (len(bits) % block_size)
     if padding_size == 0:
@@ -45,7 +45,7 @@ def pkcs7_bits_pad(bits, block_size):
     return bits + padding_bits
 
 
-def pkcs7_bits_unpad(bits):
+def pkcs7_unpad_bits(bits):
     padding_size = int(''.join(map(str, bits[-8:])), 2)
     return bits[:-padding_size * 8]
 
