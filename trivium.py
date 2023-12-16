@@ -1,27 +1,7 @@
-import secrets
+from utils import random_bits, ascii_to_bits, bits_to_ascii
 
 IV_SIZE = 80
 KEY_SIZE = 80
-
-
-def ascii_to_binary(input_str):
-    binary_list = []
-    for char in input_str:
-        bin_char = format(ord(char), '08b')
-        binary_list.extend(map(int, bin_char))
-    return binary_list
-
-
-def binary_to_ascii(binary_list):
-    ascii_str = ""
-    for i in range(0, len(binary_list), 8):
-        bin_char = ''.join(map(str, binary_list[i:i + 8]))
-        ascii_str += chr(int(bin_char, 2))
-    return ascii_str
-
-
-def random_bits(n):
-    return [secrets.choice((0, 1)) for _ in range(n)]
 
 
 class TriviumCipher:
@@ -79,8 +59,8 @@ def main():
     trivium = TriviumCipher(key, iv)
 
     plaintext = "Hello, my name is Trivium!"
-    ciphertext = trivium.encrypt(ascii_to_binary(plaintext))
-    decrypted = binary_to_ascii(trivium.decrypt(ciphertext))
+    ciphertext = trivium.encrypt(ascii_to_bits(plaintext))
+    decrypted = bits_to_ascii(trivium.decrypt(ciphertext))
 
     print("Plaintext:", plaintext)
     print("Ciphertext:", ''.join(str(b) for b in ciphertext))
