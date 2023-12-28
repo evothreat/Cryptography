@@ -41,8 +41,17 @@ INV_S_BOX = [
 ]
 
 
-# Calculates the product of two polynomials in GF(2^8) modulo the irreducible polynomial m(x) = x^8 + x^4 + x^3 + x + 1.
-# The algorithm is based on the Russian Peasant Multiplication algorithm.
+def x_times(a):
+    # Shift left by 1 bit
+    a <<= 1
+    # If the most significant bit is 1, reduce the result modulo m(x) (0x1b)
+    if a & 0x100:
+        a ^= 0x1b  # Irreducible polynomial: x^8 + x^4 + x^3 + x + 1
+    # Return the result masked to 8 bits
+    return a & 0xff
+
+
+# Calculates the product of two polynomials in GF(2^8) using the Russian Peasant Multiplication algorithm.
 def g_mult(a, b):
     # Initialize the product to 0
     p = 0
@@ -51,15 +60,9 @@ def g_mult(a, b):
         # If the least significant bit of b is 1, add a to the product
         if b & 1:
             p ^= a
-        # Check if the highest bit of a is set
-        hi_bit_set = a & 0x80
-        # Shift b one bit to the right
+        # Shift b right by 1 bit and a left by 1 bit
         b >>= 1
-        # Shift a one bit to the left and mask out the highest bit
-        a = (a << 1) & 0xff
-        # If the highest bit of a was set, reduce a by m(x) to keep the product within GF(2^8)
-        if hi_bit_set:
-            a ^= 0x1b  # m(x) = x^8 + x^4 + x^3 + x + 1
+        a = x_times(a)  # "x_times" operation in GF(2^8)
     # Return the final product
     return p
 
