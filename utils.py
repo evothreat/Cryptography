@@ -58,3 +58,25 @@ def add_parities(bits):
         parity = sum(byte) % 2
         result.extend(byte + [parity])
     return result
+
+
+def pkcs7_pad_bytes(byte_array, block_size):
+    # Calculate the number of bytes to pad
+    padding_size = block_size - (len(byte_array) % block_size)
+    if padding_size == 0:
+        padding_size = block_size  # Pad a full block if no padding is needed
+
+    return byte_array + padding_size * [padding_size]
+
+
+def pkcs7_unpad_bytes(byte_array):
+    padding_size = byte_array[-1]
+    return byte_array[:-padding_size]
+
+
+def text2bytes(ascii_str):
+    return [ord(c) for c in ascii_str]
+
+
+def bytes2text(byte_array):
+    return ''.join(map(chr, byte_array))
