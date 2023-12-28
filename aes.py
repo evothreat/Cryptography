@@ -41,16 +41,26 @@ INV_S_BOX = [
 ]
 
 
-def mult(a, b):
+# Calculates the product of two polynomials in GF(2^8) modulo the irreducible polynomial m(x) = x^8 + x^4 + x^3 + x + 1.
+# The algorithm is based on the Russian Peasant Multiplication algorithm.
+def g_mult(a, b):
+    # Store the product in p
     p = 0
+    # Loop until b == 0
     for _ in range(8):
+        # If the least significant bit of b is 1, add a to p
         if b & 1:
             p ^= a
+        # Check if the highest bit of a is 1
         hi_bit_set = a & 0x80
+        # Shift a one bit to the left
         a <<= 1
+        # Keep a 8-bit
         a &= 0xff
+        # If the highest bit of a was 1, XOR a with the irreducible polynomial
         if hi_bit_set:
             a ^= 0x1b
+        # Shift b one bit to the right
         b >>= 1
     return p
 
@@ -82,19 +92,19 @@ def inv_shift_rows(state):
 def mix_columns(state):
     for i in range(4):
         col = [state[j][i] for j in range(4)]
-        state[0][i] = mult(col[0], 2) ^ mult(col[1], 3) ^ col[2] ^ col[3]   # 2 * a0 + 3 * a1 + 1 * a2 + 1 * a3
-        state[1][i] = col[0] ^ mult(col[1], 2) ^ mult(col[2], 3) ^ col[3]   # 1 * a0 + 2 * a1 + 3 * a2 + 1 * a3
-        state[2][i] = col[0] ^ col[1] ^ mult(col[2], 2) ^ mult(col[3], 3)   # 1 * a0 + 1 * a1 + 2 * a2 + 3 * a3
-        state[3][i] = mult(col[0], 3) ^ col[1] ^ col[2] ^ mult(col[3], 2)   # 3 * a0 + 1 * a1 + 1 * a2 + 2 * a3
+        state[0][i] = g_mult(col[0], 2) ^ g_mult(col[1], 3) ^ col[2] ^ col[3]  # 2 * a0 + 3 * a1 + 1 * a2 + 1 * a3
+        state[1][i] = col[0] ^ g_mult(col[1], 2) ^ g_mult(col[2], 3) ^ col[3]  # 1 * a0 + 2 * a1 + 3 * a2 + 1 * a3
+        state[2][i] = col[0] ^ col[1] ^ g_mult(col[2], 2) ^ g_mult(col[3], 3)  # 1 * a0 + 1 * a1 + 2 * a2 + 3 * a3
+        state[3][i] = g_mult(col[0], 3) ^ col[1] ^ col[2] ^ g_mult(col[3], 2)  # 3 * a0 + 1 * a1 + 1 * a2 + 2 * a3
 
 
 def inv_mix_columns(state):
     for i in range(4):
         col = [state[j][i] for j in range(4)]
-        state[0][i] = mult(col[0], 14) ^ mult(col[1], 11) ^ mult(col[2], 13) ^ mult(col[3], 9)
-        state[1][i] = mult(col[0], 9) ^ mult(col[1], 14) ^ mult(col[2], 11) ^ mult(col[3], 13)
-        state[2][i] = mult(col[0], 13) ^ mult(col[1], 9) ^ mult(col[2], 14) ^ mult(col[3], 11)
-        state[3][i] = mult(col[0], 11) ^ mult(col[1], 13) ^ mult(col[2], 9) ^ mult(col[3], 14)
+        state[0][i] = g_mult(col[0], 14) ^ g_mult(col[1], 11) ^ g_mult(col[2], 13) ^ g_mult(col[3], 9)
+        state[1][i] = g_mult(col[0], 9) ^ g_mult(col[1], 14) ^ g_mult(col[2], 11) ^ g_mult(col[3], 13)
+        state[2][i] = g_mult(col[0], 13) ^ g_mult(col[1], 9) ^ g_mult(col[2], 14) ^ g_mult(col[3], 11)
+        state[3][i] = g_mult(col[0], 11) ^ g_mult(col[1], 13) ^ g_mult(col[2], 9) ^ g_mult(col[3], 14)
 
 
 def add_round_key(state, round_key):
@@ -131,8 +141,8 @@ def key_expansion(key):
     return [w[i:i + 4] for i in range(0, len(w), 4)]
 
 
-# AES operates on a 4x4 matrix of bytes (for 128-bit blocks) in column-major order
-# For example, the bytes are arranged as follows: B = [b0, b1, b2, ..., b15]
+# AES-128 operates on a 4x4 matrix of bytes in column-major order (also known as state matrix).
+# For example, if we have a 16-byte array: b = [b0, b1, ..., b15]
 # The state matrix is then:
 # S = [[b0, b4, b8, b12],
 #      [b1, b5, b9, b13],
