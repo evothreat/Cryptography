@@ -66,17 +66,9 @@ def pkcs7_pad_bytes(byte_array, block_size):
     if padding_size == 0:
         padding_size = block_size  # Pad a full block if no padding is needed
 
-    return byte_array + padding_size * [padding_size]
+    return byte_array + padding_size * bytes([padding_size])
 
 
 def pkcs7_unpad_bytes(byte_array):
     padding_size = byte_array[-1]
     return byte_array[:-padding_size]
-
-
-def text2bytes(ascii_str):
-    return [ord(c) for c in ascii_str]
-
-
-def bytes2text(byte_array):
-    return ''.join(map(chr, byte_array))

@@ -1,6 +1,6 @@
 import os
 
-from utils import pkcs7_pad_bytes, pkcs7_unpad_bytes, text2bytes, bytes2text
+from utils import pkcs7_pad_bytes, pkcs7_unpad_bytes
 
 S_BOX = [
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -131,7 +131,7 @@ def key_expansion(key):
     return [w[i:i + 4] for i in range(0, len(w), 4)]
 
 
-# AES operates on a 4x4 matrix of bytes in column-major order (if 128-bit blocks are used)
+# AES operates on a 4x4 matrix of bytes (for 128-bit blocks) in column-major order
 # For example, the bytes are arranged as follows: B = [b0, b1, b2, ..., b15]
 # The state matrix is then:
 # S = [[b0, b4, b8, b12],
@@ -180,7 +180,7 @@ def aes_encrypt(plaintext, key):
         encrypted_block = aes_encrypt_block(block, round_keys)
         ciphertext.extend(encrypted_block)
 
-    return ciphertext
+    return bytes(ciphertext)
 
 
 def aes_decrypt_block(block, round_keys):
@@ -210,14 +210,14 @@ def aes_decrypt(ciphertext, key):
         decrypted_block = aes_decrypt_block(block, round_keys)
         plaintext.extend(decrypted_block)
 
-    return plaintext
+    return bytes(plaintext)
 
 
 def main():
     key = os.urandom(16)
     plaintext = "Hello, my name is AES!"
-    ciphertext = aes_encrypt(pkcs7_pad_bytes(text2bytes(plaintext), 16), key)
-    decrypted = bytes2text(pkcs7_unpad_bytes(aes_decrypt(ciphertext, key)))
+    ciphertext = aes_encrypt(pkcs7_pad_bytes(plaintext.encode(), 16), key)
+    decrypted = pkcs7_unpad_bytes(aes_decrypt(ciphertext, key)).decode()
 
     print("Plaintext:", plaintext)
     print("Ciphertext:", ciphertext)
