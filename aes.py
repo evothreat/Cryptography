@@ -42,10 +42,23 @@ INV_S_BOX = [
 
 
 def x_times(a):
+    """
+    Calculates the product of the polynomial p(x) and x in GF(2^8).
+    Through recursion, we can compute the product of p(x) and x^n in GF(2^8) for any n.
+    For example:
+    - p(x) * x = x_times(p(x))
+    - p(x) * x^2 = x_times(x_times(p(x)))
+    - p(x) * x^3 = x_times(x_times(x_times(p(x)))
+
+    The elements of GF(2^8) are represented as polynomials of degree 7 or lower:
+        a(x) = a7 * x^7 + a6 * x^6 + ... + a1 * x + a0.
+    However, the product of p(x) and x can result in a polynomial of degree 8 or higher.
+    To ensure the result remains within the field, reduction is performed by taking
+    the modulo operation with an irreducible polynomial x^8 + x^4 + x^3 + x + 1.
+    """
     # Check if the MSB is set
     if a & 0x80:
-        # If the MSB is 1, the left shift will cause an overflow,
-        # so we reduce the result using modulo reduction with the irreducible polynomial x^8 + x^4 + x^3 + x + 1
+        # If the MSB is 1, the left shift leads to an overflow, so we have to perform a reduction
         return ((a << 1) ^ 0x11B) & 0xFF
     else:
         # If the MSB is 0, a simple left shift is sufficient
@@ -58,12 +71,14 @@ def g_mult(a, b):
     p = 0
     # Perform Galois Field (GF) multiplication for 8 bits
     for _ in range(8):
-        # If the LSB of b is 1, add a to the product
+        # If the LSB of b is 1
         if b & 1:
+            # Add a to the result
             p ^= a
-        # Shift b right by 1 bit and a left by 1 bit
+        # Divide b by 2
         b >>= 1
-        a = x_times(a)  # "x_times" operation in GF(2^8)
+        # Multiply a by 2 in GF(2^8)
+        a = x_times(a)
     # Return the final product
     return p
 
