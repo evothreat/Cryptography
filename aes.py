@@ -42,13 +42,12 @@ INV_S_BOX = [
 
 
 def x_times(a):
-    # Shift left by 1 bit
-    a <<= 1
-    # If the most significant bit is 1, reduce the result modulo m(x) (0x1b)
-    if a & 0x100:
-        a ^= 0x1b  # Irreducible polynomial: x^8 + x^4 + x^3 + x + 1
-    # Return the result masked to 8 bits
-    return a & 0xff
+    if a & 0x80:
+        # If the MSB is 1, the next value will be outside of GF(2^8), so we need to reduce it
+        # using the irreducible polynomial x^8 + x^4 + x^3 + x + 1 (0x11B)
+        return ((a << 1) ^ 0x11B) & 0xFF
+    else:
+        return a << 1
 
 
 # Calculates the product of two polynomials in GF(2^8) using the Russian Peasant Multiplication algorithm.
@@ -57,7 +56,7 @@ def g_mult(a, b):
     p = 0
     # Perform Galois Field (GF) multiplication for 8 bits
     for _ in range(8):
-        # If the least significant bit of b is 1, add a to the product
+        # If the LSB of b is 1, add a to the product
         if b & 1:
             p ^= a
         # Shift b right by 1 bit and a left by 1 bit
