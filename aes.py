@@ -42,11 +42,13 @@ INV_S_BOX = [
 
 
 def x_times(a):
+    # Check if the MSB is set
     if a & 0x80:
-        # If the MSB is 1, the next value will be outside of GF(2^8), so we need to reduce it
-        # using the irreducible polynomial x^8 + x^4 + x^3 + x + 1 (0x11B)
+        # If the MSB is 1, the left shift will cause an overflow,
+        # so we reduce the result using modulo reduction with the irreducible polynomial x^8 + x^4 + x^3 + x + 1
         return ((a << 1) ^ 0x11B) & 0xFF
     else:
+        # If the MSB is 0, a simple left shift is sufficient
         return a << 1
 
 
