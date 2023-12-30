@@ -266,8 +266,8 @@ class AES:
         Encryption of first block: C_0 = E_K(P_0 XOR IV)
         Encryption of subsequent blocks: C_i = E_K(P_i XOR C_{i-1})
         """
-        prev_block = os.urandom(16)
-        ciphertext = [*prev_block]
+        iv = prev_block = os.urandom(16)
+        ciphertext = []
 
         for i in range(0, len(plaintext), 16):
             block = plaintext[i:i + 16]
@@ -276,7 +276,7 @@ class AES:
             ciphertext.extend(encrypted_block)
             prev_block = encrypted_block
 
-        return bytes(ciphertext)
+        return iv + bytes(ciphertext)
 
     def decrypt_cbc(self, ciphertext):
         """
@@ -297,20 +297,6 @@ class AES:
 
         return bytes(plaintext)
 
-    def _process_cfb(self, text, prev_block):
-        ciphertext = []
-
-        for i in range(0, len(text), 16):
-            block = text[i:i + 16]
-            encrypted_block = xor_arrays(
-                block,
-                aes_encrypt_block(prev_block, self.round_keys)
-            )
-            ciphertext.extend(encrypted_block)
-            prev_block = encrypted_block
-
-        return bytes(ciphertext)
-
     def encrypt_cfb(self, plaintext):
         """
         Cipher Feedback (CFB) mode encrypts each plaintext block by XORing it with
@@ -319,18 +305,38 @@ class AES:
         Encryption of first block: C_0 = P_0 XOR E_K(IV)
         Encryption of subsequent blocks: C_i = P_i XOR E_K(C_{i-1})
         """
-        iv = os.urandom(16)
-        ciphertext = self._process_cfb(plaintext, iv)
-        return iv + ciphertext
+        iv = prev_block = os.urandom(16)
+        ciphertext = []
+
+        for i in range(0, len(plaintext), 16):
+            block = plaintext[i:i + 16]
+            encrypted_block = xor_arrays(
+                block,
+                aes_encrypt_block(prev_block, self.round_keys)
+            )
+            ciphertext.extend(encrypted_block)
+            prev_block = encrypted_block
+
+        return iv + bytes(ciphertext)
 
     def decrypt_cfb(self, ciphertext):
         """
         Decryption of first block: P_0 = C_0 XOR E_K(IV)
         Decryption of subsequent blocks: P_i = C_i XOR E_K(C_{i-1})
         """
-        iv, ciphertext = ciphertext[:16], ciphertext[16:]
-        plaintext = self._process_cfb(ciphertext, iv)
-        return plaintext
+        prev_block, ciphertext = ciphertext[:16], ciphertext[16:]
+        plaintext = []
+
+        for i in range(0, len(ciphertext), 16):
+            block = ciphertext[i:i + 16]
+            decrypted_block = xor_arrays(
+                block,
+                aes_encrypt_block(prev_block, self.round_keys)
+            )
+            plaintext.extend(decrypted_block)
+            prev_block = block
+
+        return bytes(plaintext)
 
     def _process_ofb(self, text, prev_block):
         ciphertext = []
