@@ -1,16 +1,14 @@
-import os
-
+from random import randbytes, randrange
 import pytest
-
 from aes.aes import AES, ModeOfOperation
 
 
 class TestAesOpModes:
     @staticmethod
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def setup():
-        key = os.urandom(16)
-        plaintext = os.urandom(1234)
+        key = randbytes(16)
+        plaintext = randbytes(randrange(1, 1024))
         return key, plaintext
 
     @staticmethod
