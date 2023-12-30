@@ -140,9 +140,9 @@ def substitution_boxes(xored_block):
     substituted_block = []
     for i in range(8):
         row = xored_block[i * 6] + xored_block[i * 6 + 5]
-        col = bits_to_int(xored_block[i * 6 + 1:i * 6 + 5])
+        col = bits2int(xored_block[i * 6 + 1:i * 6 + 5])
         value = S_BOXES[i][row][col]
-        substituted_block.extend(int_to_bits(value, 4))
+        substituted_block.extend(int2bits(value, 4))
 
     return substituted_block
 
@@ -185,8 +185,8 @@ def main():
     key = add_parities(random_bits(56))
 
     plaintext = "Hello, my name is DES!"
-    ciphertext = des_encrypt(pkcs7_pad_bits(ascii_to_bits(plaintext), 64), key)
-    decrypted = bits_to_ascii(pkcs7_unpad_bits(des_decrypt(ciphertext, key)))
+    ciphertext = des_encrypt(pkcs7_pad_bits(ascii2bits(plaintext), 64), key)
+    decrypted = bits2ascii(pkcs7_unpad_bits(des_decrypt(ciphertext, key)))
 
     print("Plaintext:", plaintext)
     print("Ciphertext:", ''.join(str(b) for b in ciphertext))

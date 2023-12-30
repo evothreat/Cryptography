@@ -5,15 +5,15 @@ def xor_arrays(a, b):
     return [x ^ y for x, y in zip(a, b)]
 
 
-def bits_to_int(bits):
+def bits2int(bits):
     return int(''.join(map(str, bits)), 2)
 
 
-def int_to_bits(value, n):
+def int2bits(value, n):
     return list(map(int, format(value, '0{}b'.format(n))))
 
 
-def ascii_to_bits(input_str):
+def ascii2bits(input_str):
     bits = []
     for char in input_str:
         bin_char = format(ord(char), '08b')
@@ -21,7 +21,7 @@ def ascii_to_bits(input_str):
     return bits
 
 
-def bits_to_ascii(bits):
+def bits2ascii(bits):
     ascii_str = ""
     for i in range(0, len(bits), 8):
         bin_char = ''.join(map(str, bits[i:i + 8]))
@@ -30,7 +30,7 @@ def bits_to_ascii(bits):
 
 
 def random_bits(n):
-    return [secrets.choice((0, 1)) for _ in range(n)]
+    return [secrets.randbelow(2) for _ in range(n)]
 
 
 def pkcs7_pad_bits(bits, block_size):
