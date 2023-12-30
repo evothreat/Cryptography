@@ -1,61 +1,64 @@
 import os
 
-from aes import AES, ModeOfOperation
+import pytest
+
+from aes.aes import AES, ModeOfOperation
 
 
-class TestAES:
-    def __init__(self, key=os.urandom(16), plaintext=os.urandom(16)):
-        self.key = key
-        self.plaintext = plaintext
+class TestAesOpModes:
+    @staticmethod
+    @pytest.fixture
+    def setup():
+        key = os.urandom(16)
+        plaintext = os.urandom(1234)
+        return key, plaintext
 
-    def test_ecb(self):
-        aes = AES(self.key, ModeOfOperation.ECB)
+    @staticmethod
+    def test_ecb(setup):
+        key, plaintext = setup
+        aes = AES(key, ModeOfOperation.ECB)
 
-        ciphertext = aes.encrypt(self.plaintext)
+        ciphertext = aes.encrypt(plaintext)
         decrypted = aes.decrypt(ciphertext)
 
-        assert self.plaintext == decrypted
-        print("ECB test passed")
+        assert plaintext == decrypted
 
-    def test_cbc(self):
-        aes = AES(self.key, ModeOfOperation.CBC)
+    @staticmethod
+    def test_cbc(setup):
+        key, plaintext = setup
+        aes = AES(key, ModeOfOperation.CBC)
 
-        ciphertext = aes.encrypt(self.plaintext)
+        ciphertext = aes.encrypt(plaintext)
         decrypted = aes.decrypt(ciphertext)
 
-        assert self.plaintext == decrypted
-        print("CBC test passed")
+        assert plaintext == decrypted
 
-    def test_cfb(self):
-        aes = AES(self.key, ModeOfOperation.CFB)
+    @staticmethod
+    def test_cfb(setup):
+        key, plaintext = setup
+        aes = AES(key, ModeOfOperation.CFB)
 
-        ciphertext = aes.encrypt(self.plaintext)
+        ciphertext = aes.encrypt(plaintext)
         decrypted = aes.decrypt(ciphertext)
 
-        assert self.plaintext == decrypted
-        print("CFB test passed")
+        assert plaintext == decrypted
 
-    def test_ofb(self):
-        aes = AES(self.key, ModeOfOperation.OFB)
+    @staticmethod
+    def test_ofb(setup):
+        key, plaintext = setup
+        aes = AES(key, ModeOfOperation.OFB)
 
-        ciphertext = aes.encrypt(self.plaintext)
+        ciphertext = aes.encrypt(plaintext)
         decrypted = aes.decrypt(ciphertext)
 
-        assert self.plaintext == decrypted
-        print("OFB test passed")
+        assert plaintext == decrypted
 
-    def test_ctr(self):
-        aes = AES(self.key, ModeOfOperation.CTR)
+    @staticmethod
+    def test_ctr(setup):
+        key, plaintext = setup
+        aes = AES(key, ModeOfOperation.CTR)
 
-        ciphertext = aes.encrypt(self.plaintext)
+        ciphertext = aes.encrypt(plaintext)
         decrypted = aes.decrypt(ciphertext)
 
-        assert self.plaintext == decrypted
-        print("CTR test passed")
-
-    def run(self):
-        self.test_ecb()
-        self.test_cbc()
-        self.test_cfb()
-        self.test_ofb()
-        self.test_ctr()
+        assert plaintext == decrypted

@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 
-from aes_utils import key_expansion, aes_encrypt_block, aes_decrypt_block
+from aes.aes_utils import key_expansion, aes_encrypt_block, aes_decrypt_block
 from utils import xor_arrays, pkcs7_unpad_bytes, pkcs7_pad_bytes
 
 
