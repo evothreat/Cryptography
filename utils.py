@@ -9,24 +9,26 @@ def bits2int(bits):
     return int(''.join(map(str, bits)), 2)
 
 
-def int2bits(value, n):
-    return list(map(int, format(value, '0{}b'.format(n))))
-
-
-def ascii2bits(input_str):
+def int2bits(value, min_size=8):
     bits = []
-    for char in input_str:
-        bin_char = format(ord(char), '08b')
-        bits.extend(map(int, bin_char))
-    return bits
+    while value or len(bits) < min_size:
+        bits.append(value & 1)
+        value >>= 1
+
+    return bits[::-1]
 
 
-def bits2ascii(bits):
-    ascii_str = ""
+def text2bits(input_str):
+    return [int2bits(b) for b in input_str.encode()]
+
+
+def bits2text(bits):
+    res = []
     for i in range(0, len(bits), 8):
-        bin_char = ''.join(map(str, bits[i:i + 8]))
-        ascii_str += chr(int(bin_char, 2))
-    return ascii_str
+        byte = bits[i:i + 8]
+        res.append(bits2int(byte))
+
+    return bytes(res).decode()
 
 
 def random_bits(n):

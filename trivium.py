@@ -1,4 +1,4 @@
-from utils import random_bits, ascii2bits, bits2ascii
+from utils import random_bits, text2bits, bits2text
 
 IV_SIZE = 80
 KEY_SIZE = 80
@@ -59,8 +59,8 @@ def main():
     trivium = TriviumCipher(key, iv)
 
     plaintext = "Hello, my name is Trivium!"
-    ciphertext = trivium.encrypt(ascii2bits(plaintext))
-    decrypted = bits2ascii(trivium.decrypt(ciphertext))
+    ciphertext = trivium.encrypt(text2bits(plaintext))
+    decrypted = bits2text(trivium.decrypt(ciphertext))
 
     print("Plaintext:", plaintext)
     print("Ciphertext:", ''.join(str(b) for b in ciphertext))
