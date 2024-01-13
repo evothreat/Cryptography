@@ -74,3 +74,11 @@ def pkcs7_pad_bytes(byte_array, block_size):
 def pkcs7_unpad_bytes(byte_array):
     padding_size = byte_array[-1]
     return byte_array[:-padding_size]
+
+
+def bytes2int(byte_block):
+    return int.from_bytes(byte_block, byteorder='big')
+
+
+def int2bytes(integer, block_size):
+    return integer.to_bytes(block_size, byteorder='big')
