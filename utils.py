@@ -19,7 +19,10 @@ def int2bits(value, min_size=8):
 
 
 def text2bits(input_str):
-    return [int2bits(b) for b in input_str.encode()]
+    res = []
+    for byte in input_str.encode():
+        res.extend(int2bits(byte))
+    return res
 
 
 def bits2text(bits):
