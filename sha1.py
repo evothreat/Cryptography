@@ -1,7 +1,7 @@
 import struct
 
 
-def lrot(n, b):
+def rotl(n, b):
     return ((n << b) | (n >> (32 - b))) & 0xFFFFFFFF
 
 
@@ -28,7 +28,7 @@ class SHA1:
         ws = list(struct.unpack('>16I', block)) + [0] * 64
 
         for i in range(16, 80):
-            ws[i] = lrot(ws[i - 3] ^ ws[i - 8] ^ ws[i - 14] ^ ws[i - 16], 1)
+            ws[i] = rotl(ws[i - 3] ^ ws[i - 8] ^ ws[i - 14] ^ ws[i - 16], 1)
 
         a, b, c, d, e = self.h
 
@@ -51,9 +51,9 @@ class SHA1:
                 k = 0xCA62C1D6
 
             a, b, c, d, e = (
-                (lrot(a, 5) + f_out + e + k + ws[i]) & 0xFFFFFFFF,
+                (rotl(a, 5) + f_out + e + k + ws[i]) & 0xFFFFFFFF,
                 a,
-                lrot(b, 30),
+                rotl(b, 30),
                 c,
                 d
             )
