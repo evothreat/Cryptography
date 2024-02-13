@@ -19,10 +19,7 @@ def int2bits(value, min_size=8):
 
 
 def text2bits(input_str):
-    res = []
-    for byte in input_str.encode():
-        res.extend(int2bits(byte))
-    return res
+    return bytes2bits(input_str.encode())
 
 
 def bits2text(bits):
@@ -85,3 +82,7 @@ def bytes2int(byte_block):
 
 def int2bytes(integer, block_size):
     return integer.to_bytes(block_size, byteorder='big')
+
+
+def bytes2bits(byte_arr):
+    return [b for byte in byte_arr for b in int2bits(byte)]
