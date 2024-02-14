@@ -64,9 +64,17 @@ from utils import pkcs7_pad_bytes, pkcs7_unpad_bytes, bytes2int, int2bytes
 
 sys.setrecursionlimit(5000)
 
-
 KEY_SIZE = 1024
 BLOCK_SIZE = KEY_SIZE // 8
+
+
+def sqr_mult(b, e, m):
+    res = 1
+    for i in range(e.bit_length() - 1, -1, -1):
+        res = (res * res) % m
+        if (e >> i) & 1:
+            res = (res * b) % m
+    return res
 
 
 def is_prime(num, k=5):
@@ -85,11 +93,11 @@ def is_prime(num, k=5):
 
     for _ in range(k):
         a = random.randint(2, num - 2)
-        x = pow(a, d, num)
+        x = sqr_mult(a, d, num)
         if x == 1 or x == num - 1:
             continue
         for _ in range(s - 1):
-            x = pow(x, 2, num)
+            x = sqr_mult(x, 2, num)
             if x == num - 1:
                 break
         else:
@@ -155,7 +163,7 @@ def encrypt(message, public_key):
     for i in range(0, len(message), BLOCK_SIZE):
         block = pkcs7_pad_bytes(message[i:i + BLOCK_SIZE], BLOCK_SIZE)
         byte_block = bytes2int(block)
-        encrypted_block = pow(byte_block, e, n)
+        encrypted_block = sqr_mult(byte_block, e, n)
         ciphertext.append(encrypted_block)
 
     return ciphertext
@@ -166,7 +174,7 @@ def decrypt(ciphertext, private_key):
     decrypted_text = []
 
     for encrypted_block in ciphertext:
-        decrypted_block = pow(encrypted_block, d, n)
+        decrypted_block = sqr_mult(encrypted_block, d, n)
         byte_block = int2bytes(decrypted_block, BLOCK_SIZE)
         decrypted_text.extend(pkcs7_unpad_bytes(byte_block))
 
