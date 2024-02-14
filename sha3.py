@@ -1,7 +1,6 @@
 # Implemenation of the SHA-3 hash function
-from utils import bytes2bits
 
-RCONST = (
+RC = (
     0x0000000000000001, 0x0000000000008082, 0x800000000000808A,
     0x8000000080008000, 0x000000000000808B, 0x0000000080000001,
     0x8000000080008081, 0x8000000000008009, 0x000000000000008A,
@@ -58,22 +57,37 @@ def iota(state, round_constant):
     return state
 
 
-# Correct
 def keccak_f(state):
     for i in range(24):
         state = theta(state)
         state = rho(state)
         state = pi(state)
         state = chi(state)
-        state = iota(state, RCONST[i])
+        state = iota(state, RC[i])
 
     return state
 
 
+def bytes2lane(bytes_):
+    res = 0
+    for i in range(8):
+        res |= bytes_[i] << (8 * i)
+    return res
+
+
+def lane2bytes(l):
+    res = b''
+    for i in range(8):
+        res += (l >> (8 * i) & 0xFF).to_bytes(1, 'big')
+    return res
+
+
 def absorb(state, m, r):
-    for i in range(0, len(m), r // 8):
-        for j in range(r // 8):
-            state[j // 5][j % 5] ^= m[i + j]
+    w = 64
+    block_size = r // w * 8
+    for i in range(0, len(m), block_size):
+        for j in range(r // w):
+            state[j // 5][j % 5] ^= bytes2lane(m[i + j * 8:i + (j + 1) * 8])
         state = keccak_f(state)
     return state
 
@@ -84,13 +98,13 @@ def squeeze(state, r, outlen):
         state = keccak_f(state)
         for i in range(5):
             for j in range(5):
-                z += state[j][i].to_bytes(8, 'big')
+                z += lane2bytes(state[i][j])
     return z[:outlen]
 
 
 def sponge(message, r, c, outlen):
     # Padding the message
-    m = bytes2bits(pad(message, r))
+    m = pad(message, r)
     # Initialize the state
     state = [[0 for _ in range(5)] for _ in range(5)]
     # Absorbing phase
@@ -112,7 +126,7 @@ def sha3_256(message):
 
 def main():
     message = b'Hello, my name is SHA-3!'
-    print(sha3_256(message))
+    print(sha3_256(message).hex())
 
 
 if __name__ == "__main__":
