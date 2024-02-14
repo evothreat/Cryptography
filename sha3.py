@@ -1,5 +1,3 @@
-# Implemenation of the SHA-3 hash function
-
 RC = (
     0x0000000000000001, 0x0000000000008082, 0x800000000000808A,
     0x8000000080008000, 0x000000000000808B, 0x0000000080000001,
@@ -13,55 +11,56 @@ RC = (
 
 
 def rotl(x, n):
-    return (x << n) | (x >> (64 - n))
+    return (x << n) & (2 ** 64 - 1) | (x >> (64 - n))
 
 
 def theta(state):
-    c = [state[x][0] ^ state[x][1] ^ state[x][2] ^ state[x][3] ^ state[x][4] for x in range(5)]
-    d = [c[(x + 1) % 5] ^ rotl(c[(x - 1) % 5], 1) for x in range(5)]
-    for x in range(5):
-        for y in range(5):
-            state[x][y] ^= d[x]
+    c = [0] * 5
+    d = [0] * 5
+
+    for i in range(5):
+        c[i] = state[i][0] ^ state[i][1] ^ state[i][2] ^ state[i][3] ^ state[i][4]
+
+    for i in range(5):
+        d[i] = c[(i - 1) % 5] ^ rotl(c[(i + 1) % 5], 1)
+        for j in range(5):
+            state[i][j] ^= d[i]
 
     return state
 
 
-def rho(state):
-    for i in range(5):
-        for j in range(5):
-            state[i][j] = rotl(state[i][j], ((i * (i + 1)) // 2 + j) % 64)
+def rho_pi(state):
+    x, y = 1, 0
+    cur = state[x][y]
+    for t in range(24):
+        x, y = y, (2 * x + 3 * y) % 5
+        cur, state[x][y] = state[x][y], rotl(cur, ((t + 1) * (t + 2) // 2) % 64)
 
     return state
-
-
-def pi(state):
-    new_state = [[0 for _ in range(5)] for _ in range(5)]
-    for i in range(5):
-        for j in range(5):
-            new_state[i][j] = state[(i + 3 * j) % 5][i]
-
-    return new_state
 
 
 def chi(state):
-    new_state = [[0 for _ in range(5)] for _ in range(5)]
+    new_state = [[0] * 5 for _ in range(5)]
+
     for i in range(5):
         for j in range(5):
-            new_state[i][j] = state[i][j] ^ ((~state[(i + 1) % 5][j]) & state[(i + 2) % 5][j])
+            x = state[i][j]
+            y = state[(i + 1) % 5][j]
+            z = state[(i + 2) % 5][j]
+            new_state[i][j] = x ^ ((~y) & z)
 
     return new_state
 
 
-def iota(state, round_constant):
-    state[0][0] ^= round_constant
+def iota(state, r_const):
+    state[0][0] ^= r_const
     return state
 
 
 def keccak_f(state):
     for i in range(24):
         state = theta(state)
-        state = rho(state)
-        state = pi(state)
+        state = rho_pi(state)
         state = chi(state)
         state = iota(state, RC[i])
 
@@ -86,40 +85,38 @@ def absorb(state, m, r):
     w = 64
     for i in range(0, len(m), r // w * 8):
         for j in range(r // w):
-            state[j // 5][j % 5] ^= bytes2lane(m[i + j * 8:i + (j + 1) * 8])
+            state[j % 5][j // 5] ^= bytes2lane(m[i + j * 8:i + (j + 1) * 8])
         state = keccak_f(state)
     return state
 
 
 def squeeze(state, r, outlen):
     z = b''
-    while len(z) < outlen:
+    while True:
         for j in range(r // 64):
-            z += lane2bytes(state[j // 5][j % 5])
+            z += lane2bytes(state[j % 5][j // 5])
+        if len(z) >= outlen:
+            break
         state = keccak_f(state)
     return z[:outlen]
 
 
-def sponge(message, r, c, outlen):
-    # Padding the message
+def sponge(message, r, outlen):
     m = pad(message, r)
-    # Initialize the state
     state = [[0 for _ in range(5)] for _ in range(5)]
-    # Absorbing phase
     state = absorb(state, m, r)
-    # Squeezing phase
     return squeeze(state, r, outlen)
 
 
 def pad(m, r):
-    m += b'\x01'
+    m += b'\x06'
     m += b'\x00' * (r // 8 - len(m) % (r // 8) - 1)
     m += b'\x80'
     return m
 
 
 def sha3_256(message):
-    return sponge(message, 1088, 512, 256 // 8)
+    return sponge(message, 1088, 256 // 8)
 
 
 def main():
