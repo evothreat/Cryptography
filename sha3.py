@@ -103,7 +103,7 @@ def squeeze(state, r, outlen):
 
 def sponge(message, r, outlen):
     m = pad(message, r)
-    state = [[0 for _ in range(5)] for _ in range(5)]
+    state = [[0] * 5 for _ in range(5)]
     state = absorb(state, m, r)
     return squeeze(state, r, outlen)
 
