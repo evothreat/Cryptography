@@ -56,16 +56,17 @@ RSA Algorithm:
                        - The proof is similar to the one above.
            - Therefore, M^(e*d) (mod n) = M (mod n) for all M in Z_n.
 """
-
 import random
 import sys
 
-from utils import pkcs7_pad_bytes, pkcs7_unpad_bytes, bytes2int, int2bytes
+from utils import bytes2int, int2bytes, random_nonzero_bytes
 
 sys.setrecursionlimit(5000)
 
 KEY_SIZE = 1024
 BLOCK_SIZE = KEY_SIZE // 8
+PADDING_SIZE = 11
+PAYLOAD_SIZE = BLOCK_SIZE - PADDING_SIZE
 
 
 def sqr_mult(b, e, m):
@@ -156,12 +157,23 @@ def gcd(a, b):
     return a
 
 
+def pkcs1v15_pad(m, block_size):
+    padding_size = block_size - len(m) - 3
+    padding = random_nonzero_bytes(padding_size)
+    return b'\x00\x02' + padding + b'\x00' + m
+
+
+def pkcs1v15_unpad(m):
+    if m.startswith(b'\x00\x02'):
+        return m[m.index(b'\x00', 2) + 1:]
+    return m
+
+
 def encrypt(message, public_key):
     n, e = public_key
     ciphertext = []
-
-    for i in range(0, len(message), BLOCK_SIZE):
-        block = pkcs7_pad_bytes(message[i:i + BLOCK_SIZE], BLOCK_SIZE)
+    for i in range(0, len(message), PAYLOAD_SIZE):
+        block = pkcs1v15_pad(message[i:i + PAYLOAD_SIZE], BLOCK_SIZE)
         byte_block = bytes2int(block)
         encrypted_block = sqr_mult(byte_block, e, n)
         ciphertext.append(encrypted_block)
@@ -176,7 +188,7 @@ def decrypt(ciphertext, private_key):
     for encrypted_block in ciphertext:
         decrypted_block = sqr_mult(encrypted_block, d, n)
         byte_block = int2bytes(decrypted_block, BLOCK_SIZE)
-        decrypted_text.extend(pkcs7_unpad_bytes(byte_block))
+        decrypted_text.extend(pkcs1v15_unpad(byte_block))
 
     return bytes(decrypted_text)
 

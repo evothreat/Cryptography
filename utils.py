@@ -35,6 +35,10 @@ def random_bits(n):
     return [secrets.randbelow(2) for _ in range(n)]
 
 
+def random_nonzero_bytes(n):
+    return bytes(secrets.randbelow(255) + 1 for _ in range(n))
+
+
 def pkcs7_pad_bits(bits, block_size):
     # Calculate the number of bits to pad
     padding_size = block_size - (len(bits) % block_size)
