@@ -67,25 +67,17 @@ def keccak_f(state):
     return state
 
 
-def bytes2lane(bytes_):
-    res = 0
-    for i in range(8):
-        res |= bytes_[i] << (8 * i)
-    return res
-
-
-def lane2bytes(l):
-    res = b''
-    for i in range(8):
-        res += (l >> (8 * i) & 0xFF).to_bytes(1, 'big')
-    return res
-
-
 def absorb(state, m, r):
     w = 64
+    # Go through the message in blocks of r bits
     for i in range(0, len(m), r // w * 8):
+        # Go through the lanes of the state until capacity is reached
         for j in range(r // w):
-            state[j % 5][j // 5] ^= bytes2lane(m[i + j * 8:i + (j + 1) * 8])
+            # Convert the block to a lane (64-bit integer)
+            lane = int.from_bytes(m[i + j * 8:i + (j + 1) * 8], 'little')
+            # XOR the lane with a lane of the state
+            state[j % 5][j // 5] ^= lane
+        # After processing a block, apply the permutation
         state = keccak_f(state)
     return state
 
@@ -93,11 +85,16 @@ def absorb(state, m, r):
 def squeeze(state, r, outlen):
     z = b''
     while True:
+        # Go through the bitrate part of the state
         for j in range(r // 64):
-            z += lane2bytes(state[j % 5][j // 5])
+            # Convert the lane to bytes and append it to the output
+            z += state[j % 5][j // 5].to_bytes(8, 'little')
+        # If we have enough output, stop
         if len(z) >= outlen:
             break
+        # Otherwise, apply the permutation and continue
         state = keccak_f(state)
+    # Truncate the output to the desired length
     return z[:outlen]
 
 
@@ -109,14 +106,17 @@ def sponge(message, r, outlen):
 
 
 def pad(m, r):
+    # Add 0b10 (start of padding)
     m += b'\x06'
+    # Add 0s until the message is a multiple of r bits
     m += b'\x00' * (r // 8 - len(m) % (r // 8) - 1)
+    # Add 0b10000000 (end of padding)
     m += b'\x80'
     return m
 
 
-def sha3_256(message):
-    return sponge(message, 1088, 256 // 8)
+def sha3_256(m):
+    return sponge(m, 1088, 256 // 8)
 
 
 def main():
