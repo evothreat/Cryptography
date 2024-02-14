@@ -99,20 +99,21 @@ def squeeze(state, r, outlen):
 
 
 def sponge(message, r, outlen):
-    m = pad(message, r)
+    m = pad10star1(message, r)
     state = [[0] * 5 for _ in range(5)]
     state = absorb(state, m, r)
     return squeeze(state, r, outlen)
 
 
-def pad(m, r):
-    # Add 0b10 (start of padding)
-    m += b'\x06'
-    # Add 0s until the message is a multiple of r bits
-    m += b'\x00' * (r // 8 - len(m) % (r // 8) - 1)
-    # Add 0b10000000 (end of padding)
-    m += b'\x80'
-    return m
+def pad10star1(m, r):
+    # Calculate the number of padding bytes
+    q = (r // 8) - len(m) % (r // 8)
+    # If q = 1 then M || 0x86
+    if q == 1:
+        return m + b'\x86'
+    # If q = 2 then M || 0x0680
+    # If q > 2 then M || 0x06 || 0x00... || 0x80
+    return m + b'\x06' + b'\x00' * (q - 2) + b'\x80'
 
 
 def sha3_256(m):
