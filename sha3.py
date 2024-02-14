@@ -84,8 +84,7 @@ def lane2bytes(l):
 
 def absorb(state, m, r):
     w = 64
-    block_size = r // w * 8
-    for i in range(0, len(m), block_size):
+    for i in range(0, len(m), r // w * 8):
         for j in range(r // w):
             state[j // 5][j % 5] ^= bytes2lane(m[i + j * 8:i + (j + 1) * 8])
         state = keccak_f(state)
@@ -94,11 +93,10 @@ def absorb(state, m, r):
 
 def squeeze(state, r, outlen):
     z = b''
-    while len(z) < r // 8:
+    while len(z) < outlen:
+        for j in range(r // 64):
+            z += lane2bytes(state[j // 5][j % 5])
         state = keccak_f(state)
-        for i in range(5):
-            for j in range(5):
-                z += lane2bytes(state[i][j])
     return z[:outlen]
 
 
