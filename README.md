@@ -1,0 +1,2 @@
+# Cryptography
+Cryptography is a critical component of modern digital communication and data security. This repository includes implementations of several fundamental cryptographic algorithms, including both symmetric and asymmetric encryption techniques, hashing functions, and digital signatures. Each implementation is accompanied by detailed comments and explanations to aid in understanding the underlying concepts.
